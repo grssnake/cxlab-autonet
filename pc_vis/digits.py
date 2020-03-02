@@ -3,7 +3,13 @@ import time
 import numpy as np
 from PIL import Image
 import pytesseract as pytes
+import paho.mqtt.client as mqtt
 
+broker_ip = "127.0.0.1"
+broker_port = 1883
+
+client = mqtt.Client()
+client.connect(broker_ip, broker_ip)
 cap_1 = cv2.VideoCapture(0)
 
 def write_numbers():
@@ -31,7 +37,8 @@ def write_numbers():
                         cv2.rectangle(img_erode, (x, y), (x+w, y+h), (70, 0, 0), 1)
                         message = pytes.image_to_string(Image.fromarray(img_erode[y : y+h, x : x+w]), lang="eng", config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
                         if message:
-                            print("[System] app found ", message)    
+                            print("[System] app found ", message)
+                            client.publish(topic="Robotics/vision/nums", payload=message, qos=0, retain=False)
                         # print("[System] app found ", pytes.image_to_string(Image.fromarray(img_erode[y : y+h, x : x+w]), lang="eng", config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789'))
                 # print(pytes.image_to_string(Image.fromarray(img_erode), lang="eng", config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789'))
             cv2.imshow("Output", img_erode) 
